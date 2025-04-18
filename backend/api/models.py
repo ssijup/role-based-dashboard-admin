@@ -39,3 +39,16 @@ class User(AbstractUser):
     
     objects = UserManager()
 
+class Warehouse(models.Model):
+    city = models.CharField(max_length=100)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class Announcement(models.Model):
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

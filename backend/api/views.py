@@ -1,10 +1,14 @@
 
-from rest_framework import status, permissions
+from rest_framework import status, permissions, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .serializers import UserSerializer, LoginSerializer
+from .models import User, Warehouse, Announcement
+from .serializers import (
+    UserSerializer, LoginSerializer, WarehouseSerializer, AnnouncementSerializer
+)
+from .permissions import IsPlatformAdmin, IsAdminUser
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -46,3 +50,15 @@ def logout_view(request):
     except Exception:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+class WarehouseViewSet(viewsets.ModelViewSet):
+    queryset = Warehouse.objects.all()
+    serializer_class = WarehouseSerializer
+    permission_classes = [IsAdminUser]
+
+class AnnouncementViewSet(viewsets.ModelViewSet):
+    queryset = Announcement.objects.all().order_by('-created_at')
+    serializer_class = AnnouncementSerializer
+    permission_classes = [IsAdminUser]
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)

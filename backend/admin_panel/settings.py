@@ -1,4 +1,3 @@
-
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -58,11 +57,11 @@ WSGI_APPLICATION = 'admin_panel.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'admin_panel',
-        'USER': 'postgres',
-        'PASSWORD': 'your-password',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME', 'admin_panel'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'your-password'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -107,4 +106,3 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-
