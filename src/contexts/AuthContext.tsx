@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { AuthState, User, UserRole } from "@/lib/types";
 
-// Mock API URL - replace with actual Django backend URL in production
+// Django backend URL
 const API_URL = "http://localhost:8000/api";
 
 interface AuthContextType extends AuthState {
@@ -26,25 +26,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      if (state.token) {
+      const token = localStorage.getItem("token");
+      if (token) {
         try {
-          // Set default Authorization header for all requests
-          axios.defaults.headers.common["Authorization"] = `Bearer ${state.token}`;
-          
-          // In production, fetch current user from your Django backend
-          const response = await axios.get(`${API_URL}/users/me/`);
+          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          const response = await axios.get(`${API_URL}/auth/user/`);
           
           setState({
-            ...state,
             user: response.data,
+            token,
             isAuthenticated: true,
             isLoading: false,
           });
         } catch (error) {
           console.error("Authentication error:", error);
           localStorage.removeItem("token");
+          delete axios.defaults.headers.common["Authorization"];
           setState({
-            ...state,
             user: null,
             token: null,
             isAuthenticated: false,
@@ -52,53 +50,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
       } else {
-        setState({
-          ...state,
-          isLoading: false,
-        });
+        setState(prev => ({ ...prev, isLoading: false }));
       }
     };
 
     initAuth();
-  }, [state.token]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      // In production, call your Django backend
       const response = await axios.post(`${API_URL}/auth/login/`, {
         email,
         password,
       });
 
       const { token, user } = response.data;
-      
       localStorage.setItem("token", token);
-      
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
       setState({
-        ...state,
         user,
         token,
         isAuthenticated: true,
+        isLoading: false,
       });
-      
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      
-      return Promise.resolve();
     } catch (error) {
       console.error("Login error:", error);
-      return Promise.reject(error);
+      throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    delete axios.defaults.headers.common["Authorization"];
-    setState({
-      ...state,
-      user: null,
-      token: null,
-      isAuthenticated: false,
-    });
+  const logout = async () => {
+    try {
+      await axios.post(`${API_URL}/auth/logout/`);
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
+      setState({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    }
   };
 
   const checkPermission = (requiredRole: UserRole | UserRole[]) => {
@@ -132,3 +128,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
