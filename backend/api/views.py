@@ -13,6 +13,7 @@ from .permissions import IsPlatformAdmin, IsAdminUser
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login_view(request):
+    print("LOGIN VIEW CALLED")
     serializer = LoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     
@@ -20,8 +21,9 @@ def login_view(request):
         email=serializer.validated_data['email'],
         password=serializer.validated_data['password']
     )
-    
+    print("USER: ", user)
     if user:
+        print("USER AUTHETICATED: ", user)
         refresh = RefreshToken.for_user(user)
         return Response({
             'token': str(refresh.access_token),
