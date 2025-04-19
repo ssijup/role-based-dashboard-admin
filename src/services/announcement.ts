@@ -10,13 +10,18 @@ export const announcementApi = {
     return response.data;
   },
 
+  getById: async (id: string): Promise<Announcement> => {
+    const response = await axios.get(`${API_URL}/${id}/`);
+    return response.data;
+  },
+
   create: async (announcement: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>): Promise<Announcement> => {
     const response = await axios.post(API_URL, announcement);
     return response.data;
   },
 
   update: async (id: string, announcement: Partial<Announcement>): Promise<Announcement> => {
-    const response = await axios.patch(`${API_URL}/${id}/`, announcement);
+    const response = await axios.put(`${API_URL}/${id}/`, announcement);
     return response.data;
   },
 
