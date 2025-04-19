@@ -2,8 +2,6 @@
 import axios from 'axios';
 import { Warehouse } from '@/lib/types';
 
-const API_URL = 'http://localhost:8000/api/warehouses';
-
 // Create axios instance with authentication header
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
@@ -11,7 +9,7 @@ const api = axios.create({
 
 // Request interceptor to add auth token to all requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
+  const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
