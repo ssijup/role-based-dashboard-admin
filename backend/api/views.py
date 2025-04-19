@@ -11,7 +11,35 @@ from .serializers import (
 )
 from .permissions import IsPlatformAdmin, IsAdminUser
 
-# ... keep existing code (login_view, user_view, and logout_view functions)
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def login_view(request):
+    serializer = LoginSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        user = authenticate(email=email, password=password)
+        
+        if user:
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'token': str(refresh.access_token),
+                'user': UserSerializer(user).data
+            })
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def user_view(request):
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def logout_view(request):
+    # Blacklist token logic could be added here
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 class WarehouseAPIView(APIView):
     permission_classes = [IsAdminUser]
