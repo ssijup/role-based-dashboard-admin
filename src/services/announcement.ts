@@ -2,30 +2,42 @@
 import axios from 'axios';
 import { Announcement } from '@/lib/types';
 
-const API_URL = 'http://localhost:8000/api/announcements';
+// Use the same axios instance with auth interceptor from warehouse service
+const api = axios.create({
+  baseURL: 'http://localhost:8000/api',
+});
+
+// Request interceptor to add auth token to all requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export const announcementApi = {
   getAll: async (): Promise<Announcement[]> => {
-    const response = await axios.get(API_URL);
+    const response = await api.get('/announcements/');
     return response.data;
   },
 
   getById: async (id: string): Promise<Announcement> => {
-    const response = await axios.get(`${API_URL}/${id}/`);
+    const response = await api.get(`/announcements/${id}/`);
     return response.data;
   },
 
   create: async (announcement: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>): Promise<Announcement> => {
-    const response = await axios.post(API_URL, announcement);
+    const response = await api.post('/announcements/', announcement);
     return response.data;
   },
 
   update: async (id: string, announcement: Partial<Announcement>): Promise<Announcement> => {
-    const response = await axios.put(`${API_URL}/${id}/`, announcement);
+    const response = await api.put(`/announcements/${id}/`, announcement);
     return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
-    await axios.delete(`${API_URL}/${id}/`);
+    await api.delete(`/announcements/${id}/`);
   }
 };
