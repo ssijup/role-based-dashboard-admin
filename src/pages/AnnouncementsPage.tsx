@@ -1,6 +1,7 @@
-
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Announcement } from "@/lib/types";
+import { announcementApi } from "@/services/announcement";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -41,38 +42,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { MoreVertical, PlusCircle, Edit, Trash, Eye } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-// Mock data - replace with API calls to your Django backend
-const mockAnnouncements: Announcement[] = [
-  {
-    id: "1",
-    title: "System Maintenance",
-    content: "The system will be down for maintenance on Friday at 10pm.",
-    createdBy: "John Doe",
-    createdAt: "2023-01-01T00:00:00.000Z",
-    updatedAt: "2023-01-01T00:00:00.000Z",
-  },
-  {
-    id: "2",
-    title: "New Feature Release",
-    content: "We are pleased to announce the release of our new inventory tracking feature.",
-    createdBy: "Jane Smith",
-    createdAt: "2023-01-02T00:00:00.000Z",
-    updatedAt: "2023-01-02T00:00:00.000Z",
-  },
-  {
-    id: "3",
-    title: "Holiday Schedule",
-    content: "All warehouses will be closed on December 25th and January 1st.",
-    createdBy: "Bob Johnson",
-    createdAt: "2023-01-03T00:00:00.000Z",
-    updatedAt: "2023-01-03T00:00:00.000Z",
-  },
-];
-
 export default function AnnouncementsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [announcements, setAnnouncements] = useState<Announcement[]>(mockAnnouncements);
+  const queryClient = useQueryClient();
   const [isAddAnnouncementDialogOpen, setIsAddAnnouncementDialogOpen] = useState(false);
   const [isEditAnnouncementDialogOpen, setIsEditAnnouncementDialogOpen] = useState(false);
   const [isViewAnnouncementDialogOpen, setIsViewAnnouncementDialogOpen] = useState(false);
@@ -82,58 +55,69 @@ export default function AnnouncementsPage() {
     content: "",
   });
 
+  const { data: announcements = [], isLoading } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: announcementApi.getAll
+  });
+
+  const createMutation = useMutation({
+    mutationFn: announcementApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      setIsAddAnnouncementDialogOpen(false);
+      setNewAnnouncement({ title: "", content: "" });
+      toast({
+        title: "Success",
+        description: "Announcement published successfully",
+      });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Announcement> }) =>
+      announcementApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      setIsEditAnnouncementDialogOpen(false);
+      setCurrentAnnouncement(null);
+      toast({
+        title: "Success",
+        description: "Announcement updated successfully",
+      });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: announcementApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      toast({
+        title: "Success",
+        description: "Announcement deleted successfully",
+      });
+    }
+  });
+
   const handleAddAnnouncement = () => {
-    if (!user) return;
-
-    // In production, call your Django backend API
-    const announcement: Announcement = {
-      id: String(announcements.length + 1),
-      title: newAnnouncement.title,
-      content: newAnnouncement.content,
-      createdBy: user.name,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setAnnouncements([...announcements, announcement]);
-    setNewAnnouncement({
-      title: "",
-      content: "",
-    });
-    setIsAddAnnouncementDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Announcement published successfully",
-    });
+    createMutation.mutate(newAnnouncement);
   };
 
   const handleEditAnnouncement = () => {
-    if (!currentAnnouncement) return;
-
-    // In production, call your Django backend API
-    const updatedAnnouncements = announcements.map((announcement) =>
-      announcement.id === currentAnnouncement.id 
-        ? { ...currentAnnouncement, updatedAt: new Date().toISOString() } 
-        : announcement
-    );
-
-    setAnnouncements(updatedAnnouncements);
-    setIsEditAnnouncementDialogOpen(false);
-    setCurrentAnnouncement(null);
-    toast({
-      title: "Success",
-      description: "Announcement updated successfully",
+    if (!currentAnnouncement?.id) return;
+    
+    updateMutation.mutate({
+      id: currentAnnouncement.id,
+      data: currentAnnouncement
     });
   };
 
   const handleDeleteAnnouncement = (id: string) => {
-    // In production, call your Django backend API
-    setAnnouncements(announcements.filter((announcement) => announcement.id !== id));
-    toast({
-      title: "Success",
-      description: "Announcement deleted successfully",
-    });
+    deleteMutation.mutate(id);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   // Function to truncate text for display in table
   const truncateText = (text: string, maxLength: number) => {
