@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       });
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error rrrrr:", error);
       throw error;
     }
   };
