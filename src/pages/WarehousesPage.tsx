@@ -1,6 +1,7 @@
-
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Warehouse } from "@/lib/types";
+import { warehouseApi } from "@/services/warehouse";
 import {
   Card,
   CardContent,
@@ -39,37 +40,9 @@ import { Label } from "@/components/ui/label";
 import { MoreVertical, PlusCircle, Edit, Trash, MapPin } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-// Mock data - replace with API calls to your Django backend
-const mockWarehouses: Warehouse[] = [
-  {
-    id: "1",
-    city: "Seattle",
-    latitude: 47.6062,
-    longitude: -122.3321,
-    createdAt: "2023-01-01T00:00:00.000Z",
-    updatedAt: "2023-01-01T00:00:00.000Z",
-  },
-  {
-    id: "2",
-    city: "Portland",
-    latitude: 45.5152,
-    longitude: -122.6784,
-    createdAt: "2023-01-02T00:00:00.000Z",
-    updatedAt: "2023-01-02T00:00:00.000Z",
-  },
-  {
-    id: "3",
-    city: "San Francisco",
-    latitude: 37.7749,
-    longitude: -122.4194,
-    createdAt: "2023-01-03T00:00:00.000Z",
-    updatedAt: "2023-01-03T00:00:00.000Z",
-  },
-];
-
 export default function WarehousesPage() {
   const { toast } = useToast();
-  const [warehouses, setWarehouses] = useState<Warehouse[]>(mockWarehouses);
+  const queryClient = useQueryClient();
   const [isAddWarehouseDialogOpen, setIsAddWarehouseDialogOpen] = useState(false);
   const [isEditWarehouseDialogOpen, setIsEditWarehouseDialogOpen] = useState(false);
   const [currentWarehouse, setCurrentWarehouse] = useState<Warehouse | null>(null);
@@ -79,57 +52,73 @@ export default function WarehousesPage() {
     longitude: "",
   });
 
+  const { data: warehouses = [], isLoading } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: warehouseApi.getAll
+  });
+
+  const createMutation = useMutation({
+    mutationFn: warehouseApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      setIsAddWarehouseDialogOpen(false);
+      setNewWarehouse({ city: "", latitude: "", longitude: "" });
+      toast({
+        title: "Success",
+        description: "Warehouse added successfully",
+      });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Warehouse> }) => 
+      warehouseApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      setIsEditWarehouseDialogOpen(false);
+      setCurrentWarehouse(null);
+      toast({
+        title: "Success",
+        description: "Warehouse updated successfully",
+      });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: warehouseApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      toast({
+        title: "Success",
+        description: "Warehouse deleted successfully",
+      });
+    }
+  });
+
   const handleAddWarehouse = () => {
-    // In production, call your Django backend API
-    const warehouse: Warehouse = {
-      id: String(warehouses.length + 1),
+    createMutation.mutate({
       city: newWarehouse.city,
       latitude: parseFloat(newWarehouse.latitude),
       longitude: parseFloat(newWarehouse.longitude),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setWarehouses([...warehouses, warehouse]);
-    setNewWarehouse({
-      city: "",
-      latitude: "",
-      longitude: "",
-    });
-    setIsAddWarehouseDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Warehouse added successfully",
     });
   };
 
   const handleEditWarehouse = () => {
-    if (!currentWarehouse) return;
-
-    // In production, call your Django backend API
-    const updatedWarehouses = warehouses.map((warehouse) =>
-      warehouse.id === currentWarehouse.id 
-        ? { ...currentWarehouse, updatedAt: new Date().toISOString() } 
-        : warehouse
-    );
-
-    setWarehouses(updatedWarehouses);
-    setIsEditWarehouseDialogOpen(false);
-    setCurrentWarehouse(null);
-    toast({
-      title: "Success",
-      description: "Warehouse updated successfully",
+    if (!currentWarehouse?.id) return;
+    
+    updateMutation.mutate({
+      id: currentWarehouse.id,
+      data: currentWarehouse
     });
   };
 
   const handleDeleteWarehouse = (id: string) => {
-    // In production, call your Django backend API
-    setWarehouses(warehouses.filter((warehouse) => warehouse.id !== id));
-    toast({
-      title: "Success",
-      description: "Warehouse deleted successfully",
-    });
+    deleteMutation.mutate(id);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
