@@ -14,6 +14,7 @@ import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
 import WarehousesPage from "./pages/WarehousesPage";
 import AnnouncementsPage from "./pages/AnnouncementsPage";
+import CategoriesPage from "./pages/CategoriesPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import NotFound from "./pages/NotFound";
 
@@ -59,6 +60,7 @@ const App = () => (
               }
             >
               <Route path="/warehouses" element={<WarehousesPage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/announcements" element={<AnnouncementsPage />} />
             </Route>
 

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +11,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  FolderTree, // Added import for FolderTree icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -70,6 +70,12 @@ export function Sidebar() {
       icon: Bell,
       label: "Announcements",
       roles: [UserRole.PLATFORM_ADMIN, UserRole.SUPPORT_STAFF, UserRole.WAREHOUSE_ADMIN],
+    },
+    { // Added Categories navigation item
+      to: "/categories",
+      icon: FolderTree,
+      label: "Categories",
+      roles: [UserRole.PLATFORM_ADMIN], // Adjust roles as needed
     },
   ];
 
