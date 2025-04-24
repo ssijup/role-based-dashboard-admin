@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Warehouse, Announcement
+from .models import Warehouse, Announcement, Category, SubCategory
 
 User = get_user_model()
 
@@ -17,6 +17,19 @@ class LoginSerializer(serializers.Serializer):
 
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'description', 'created_at', 'updated_at']
+
+class SubCategorySerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    
+    class Meta:
+        model = SubCategory
+        fields = ['id', 'name', 'category', 'category_name', 'description', 'created_at', 'updated_at']
+
         model = Warehouse
         fields = ['id', 'city', 'latitude', 'longitude', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']

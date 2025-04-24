@@ -7,6 +7,37 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import User, Warehouse, Announcement
 from .serializers import (
+
+class CategoryAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SubCategoryAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        subcategories = SubCategory.objects.all()
+        serializer = SubCategorySerializer(subcategories, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = SubCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     UserSerializer, LoginSerializer, WarehouseSerializer, AnnouncementSerializer
 )
 from .permissions import IsPlatformAdmin, IsAdminUser
