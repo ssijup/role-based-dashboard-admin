@@ -1,44 +1,13 @@
-
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .models import User, Warehouse, Announcement
+from .models import User, Warehouse, Announcement, Category, SubCategory
 from .serializers import (
-
-class CategoryAPIView(APIView):
-    permission_classes = [IsAdminUser]
-
-    def get(self, request):
-        categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = CategorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class SubCategoryAPIView(APIView):
-    permission_classes = [IsAdminUser]
-
-    def get(self, request):
-        subcategories = SubCategory.objects.all()
-        serializer = SubCategorySerializer(subcategories, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = SubCategorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    UserSerializer, LoginSerializer, WarehouseSerializer, AnnouncementSerializer
+    UserSerializer, LoginSerializer, WarehouseSerializer, AnnouncementSerializer,
+    CategorySerializer, SubCategorySerializer
 )
 from .permissions import IsPlatformAdmin, IsAdminUser
 
@@ -50,7 +19,7 @@ def login_view(request):
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
         user = authenticate(email=email, password=password)
-        
+
         if user:
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -166,4 +135,102 @@ class AnnouncementDetailAPIView(APIView):
         if not announcement:
             return Response(status=status.HTTP_404_NOT_FOUND)
         announcement.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CategoryAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CategoryDetailAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get_object(self, pk):
+        try:
+            return Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        category = self.get_object(pk)
+        if not category:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = CategorySerializer(category)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        category = self.get_object(pk)
+        if not category:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        category = self.get_object(pk)
+        if not category:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        category.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubCategoryAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        subcategories = SubCategory.objects.all()
+        serializer = SubCategorySerializer(subcategories, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = SubCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SubCategoryDetailAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get_object(self, pk):
+        try:
+            return SubCategory.objects.get(pk=pk)
+        except SubCategory.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        subcategory = self.get_object(pk)
+        if not subcategory:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = SubCategorySerializer(subcategory)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        subcategory = self.get_object(pk)
+        if not subcategory:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = SubCategorySerializer(subcategory, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        subcategory = self.get_object(pk)
+        if not subcategory:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        subcategory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

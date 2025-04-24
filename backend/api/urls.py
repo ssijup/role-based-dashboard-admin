@@ -14,4 +14,12 @@ urlpatterns = [
     # Announcement URLs
     path('announcements/', views.AnnouncementAPIView.as_view(), name='announcement-list'),
     path('announcements/<int:pk>/', views.AnnouncementDetailAPIView.as_view(), name='announcement-detail'),
+    
+    # Category URLs
+    path('categories/', views.CategoryAPIView.as_view(), name='category-list'),
+    path('categories/<int:pk>/', views.CategoryDetailAPIView.as_view(), name='category-detail'),
+    
+    # SubCategory URLs
+    path('subcategories/', views.SubCategoryAPIView.as_view(), name='subcategory-list'),
+    path('subcategories/<int:pk>/', views.SubCategoryDetailAPIView.as_view(), name='subcategory-detail'),
 ]
