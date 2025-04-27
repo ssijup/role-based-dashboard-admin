@@ -1,8 +1,6 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Category, SubCategory } from "@/lib/types";
-import { categoryApi, subcategoryApi } from "@/services/category";
+import { categoryApi, subcategoryApi, Category, SubCategory } from "@/services/category";
 import {
   Card,
   CardContent,
@@ -54,12 +52,12 @@ export default function CategoriesPage() {
     category: 0,
   });
 
-  const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: isCategoriesLoading, error: categoriesError } = useQuery({
     queryKey: ['categories'],
     queryFn: categoryApi.getAll
   });
 
-  const { data: subcategories = [], isLoading: isSubCategoriesLoading } = useQuery({
+  const { data: subcategories = [], isLoading: isSubCategoriesLoading, error: subcategoriesError } = useQuery({
     queryKey: ['subcategories'],
     queryFn: subcategoryApi.getAll
   });
@@ -154,47 +152,61 @@ export default function CategoriesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell>{category.name}</TableCell>
-                  <TableCell>{category.description}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setCurrentCategory(category);
-                            setIsEditCategoryDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteCategoryMutation.mutate(category.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {isCategoriesLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+            </div>
+          ) : categoriesError ? (
+            <div className="text-center py-4 text-red-500">
+              Error loading categories. Please try again later.
+            </div>
+          ) : !Array.isArray(categories) || categories.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              No categories found. Add your first category to get started.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {Array.isArray(categories) && categories.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell>{category.name}</TableCell>
+                    <TableCell>{category.description}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setCurrentCategory(category);
+                              setIsEditCategoryDialogOpen(true);
+                            }}
+                          >
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => deleteCategoryMutation.mutate(category.id)}
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -210,49 +222,63 @@ export default function CategoriesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subcategories.map((subcategory) => (
-                <TableRow key={subcategory.id}>
-                  <TableCell>{subcategory.name}</TableCell>
-                  <TableCell>{subcategory.category_name}</TableCell>
-                  <TableCell>{subcategory.description}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setCurrentSubCategory(subcategory);
-                            setIsEditSubCategoryDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteSubCategoryMutation.mutate(subcategory.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {isSubCategoriesLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+            </div>
+          ) : subcategoriesError ? (
+            <div className="text-center py-4 text-red-500">
+              Error loading subcategories. Please try again later.
+            </div>
+          ) : !Array.isArray(subcategories) || subcategories.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              No subcategories found. Add your first subcategory to get started.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {Array.isArray(subcategories) && subcategories.map((subcategory) => (
+                  <TableRow key={subcategory.id}>
+                    <TableCell>{subcategory.name}</TableCell>
+                    <TableCell>{subcategory.category_name}</TableCell>
+                    <TableCell>{subcategory.description}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setCurrentSubCategory(subcategory);
+                              setIsEditSubCategoryDialogOpen(true);
+                            }}
+                          >
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => deleteSubCategoryMutation.mutate(subcategory.id)}
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -383,7 +409,7 @@ export default function CategoriesPage() {
                 }
               >
                 <option value={0}>Select a category</option>
-                {categories.map((category) => (
+                {Array.isArray(categories) && categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
@@ -455,7 +481,7 @@ export default function CategoriesPage() {
                   )
                 }
               >
-                {categories.map((category) => (
+                {Array.isArray(categories) && categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>

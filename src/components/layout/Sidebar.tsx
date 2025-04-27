@@ -75,7 +75,7 @@ export function Sidebar() {
       to: "/categories",
       icon: FolderTree,
       label: "Categories",
-      roles: [UserRole.PLATFORM_ADMIN], // Adjust roles as needed
+      roles: [UserRole.PLATFORM_ADMIN, UserRole.SUPPORT_STAFF, UserRole.WAREHOUSE_ADMIN], // Updated to match App.tsx
     },
   ];
 

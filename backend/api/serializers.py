@@ -17,6 +17,8 @@ class LoginSerializer(serializers.Serializer):
 
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
+        model = Warehouse
+        fields = '__all__'
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
