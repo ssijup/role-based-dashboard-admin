@@ -4,7 +4,7 @@ import { Warehouse } from '@/lib/types';
 
 // Create axios instance with authentication header
 const api = axios.create({
-  baseURL: 'https://role-based-dashboard-admin.onrender.com',
+  baseURL: 'https://role-based-dashboard-admin.onrender.com/api',
 });
 
 // Request interceptor to add auth token to all requests
