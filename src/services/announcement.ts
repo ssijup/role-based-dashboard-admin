@@ -4,7 +4,7 @@ import { Announcement } from '@/lib/types';
 
 // Create axios instance with authentication header
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'https://role-based-dashboard-admin.onrender.com',
 });
 
 // Request interceptor to add auth token to all requests

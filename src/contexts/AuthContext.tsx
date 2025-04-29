@@ -4,7 +4,7 @@ import axios from "axios";
 import { AuthState, User, UserRole } from "@/lib/types";
 
 // Django backend URL
-const API_URL = "http://localhost:8000/api";
+const API_URL = "https://role-based-dashboard-admin.onrender.com";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
