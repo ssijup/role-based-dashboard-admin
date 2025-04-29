@@ -116,3 +116,4 @@ SIMPLE_JWT = {
 # ]
 # CORS_ALLOWED_ORIGINS= "*"
 CORS_ALLOW_ALL_ORIGINS = True
+ALLOWED_HOSTS = ['role-based-dashboard-admin.onrender.com', 'localhost', '127.0.0.1']
